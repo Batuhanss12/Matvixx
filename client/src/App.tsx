@@ -4,13 +4,16 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import Landing from "@/pages/Landing";
-import Home from "@/pages/HomeNew";
+import Landing from "./pages/Landing";
+import Home from "./pages/HomeNew";
 import CustomerDashboard from "@/pages/CustomerDashboard";
 import PrinterDashboard from "@/pages/PrinterDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
-import QuoteForm from "@/pages/QuoteFormNew";
-import NotFound from "@/pages/not-found";
+import QuoteForm from "@/pages/QuoteForm";
+import Payment from "./pages/Payment";
+import CustomerRegister from "./pages/CustomerRegister";
+import PrinterRegister from "./pages/PrinterRegister";
+import NotFound from "./pages/not-found";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -26,7 +29,12 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/customer-register" component={CustomerRegister} />
+          <Route path="/printer-register" component={PrinterRegister} />
+          <Route path="/payment" component={Payment} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />
@@ -42,6 +50,7 @@ function Router() {
           <Route path="/customer-dashboard" component={CustomerDashboard} />
           <Route path="/printer-dashboard" component={PrinterDashboard} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
+          <Route path="/payment" component={Payment} />
         </>
       )}
       <Route component={NotFound} />

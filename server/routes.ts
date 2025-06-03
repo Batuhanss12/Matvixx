@@ -7,6 +7,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertQuoteSchema, insertPrinterQuoteSchema, insertRatingSchema } from "@shared/schema";
 import { z } from "zod";
+import { ideogramService } from "./ideogramApi";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -298,6 +299,198 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating rating:", error);
       res.status(500).json({ message: "Failed to create rating" });
     }
+  });
+
+  // Design generation routes
+  app.post('/api/design/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if user has enough credit (35₺ per design)
+      const designCost = 35;
+      const currentBalance = parseFloat(user.creditBalance || '0');
+      
+      if (currentBalance < designCost) {
+        return res.status(400).json({ 
+          message: "Insufficient credit balance. Please add credit to your account.",
+          requiredCredit: designCost,
+          currentBalance: currentBalance
+        });
+      }
+
+      const { prompt, options = {} } = req.body;
+      
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const result = await ideogramService.generateImage(prompt, options);
+      
+      // Deduct credit from user balance
+      const newBalance = currentBalance - designCost;
+      await storage.updateUserCreditBalance(userId, newBalance.toString());
+      
+      // Save generation history
+      await storage.saveDesignGeneration({
+        userId,
+        prompt,
+        options,
+        result: result.data,
+        creditDeducted: designCost,
+        createdAt: new Date(),
+      });
+
+      res.json({
+        ...result,
+        creditDeducted: designCost,
+        remainingBalance: newBalance
+      });
+    } catch (error) {
+      console.error("Error generating design:", error);
+      res.status(500).json({ message: "Failed to generate design" });
+    }
+  });
+
+  app.post('/api/design/generate-batch', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { requests } = req.body;
+      
+      if (!Array.isArray(requests) || requests.length === 0) {
+        return res.status(400).json({ message: "Requests array is required" });
+      }
+
+      if (requests.length > 10) {
+        return res.status(400).json({ message: "Maximum 10 requests per batch" });
+      }
+
+      const results = await ideogramService.generateBatch(requests);
+      
+      // Save batch generation history
+      for (let i = 0; i < requests.length; i++) {
+        await storage.saveDesignGeneration({
+          userId,
+          prompt: requests[i].prompt,
+          options: requests[i].options || {},
+          result: results[i].data,
+          createdAt: new Date(),
+        });
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error generating batch designs:", error);
+      res.status(500).json({ message: "Failed to generate batch designs" });
+    }
+  });
+
+  app.get('/api/design/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { page = 1, limit = 20 } = req.query;
+      
+      const history = await storage.getDesignHistory(userId, {
+        page: parseInt(page),
+        limit: parseInt(limit)
+      });
+
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching design history:", error);
+      res.status(500).json({ message: "Failed to fetch design history" });
+    }
+  });
+
+  app.get('/api/design/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const templates = await storage.getDesignTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching design templates:", error);
+      res.status(500).json({ message: "Failed to fetch design templates" });
+    }
+  });
+
+  // Payment routes
+  app.post('/api/payment/create', async (req, res) => {
+    try {
+      const { paytrService } = await import('./paytr');
+      const userIp = req.ip || req.connection.remoteAddress || '127.0.0.1';
+      
+      const result = await paytrService.createPayment(req.body, userIp);
+      res.json(result);
+    } catch (error) {
+      console.error("Payment creation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Ödeme işlemi başlatılamadı" 
+      });
+    }
+  });
+
+  app.post('/api/payment/callback', async (req, res) => {
+    try {
+      const { paytrService } = await import('./paytr');
+      const isValid = paytrService.verifyCallback(req.body);
+      
+      if (isValid) {
+        const { merchant_oid, status, total_amount } = req.body;
+        
+        if (status === 'success') {
+          // Payment successful - update user subscription or credit
+          console.log(`Payment successful for order: ${merchant_oid}, amount: ${total_amount}`);
+          
+          // Extract user info from merchant_oid if needed
+          // Format: userid_plantype_timestamp
+          const orderParts = merchant_oid.split('_');
+          if (orderParts.length >= 2) {
+            const userId = orderParts[0];
+            const planType = orderParts[1];
+            
+            if (planType === 'customer') {
+              // Add credit to customer account
+              const creditAmount = parseFloat(total_amount);
+              const user = await storage.getUser(userId);
+              if (user) {
+                const currentBalance = parseFloat(user.creditBalance || '0');
+                const newBalance = currentBalance + creditAmount;
+                await storage.updateUserCreditBalance(userId, newBalance.toString());
+              }
+            } else if (planType === 'firm') {
+              // Update firm subscription
+              await storage.updateUserSubscription(userId, 'active');
+            }
+          }
+        }
+        
+        res.send('OK');
+      } else {
+        res.status(400).send('Invalid hash');
+      }
+    } catch (error) {
+      console.error("Payment callback error:", error);
+      res.status(500).send('Error');
+    }
+  });
+
+  // Payment result pages
+  app.get('/payment/success', (req, res) => {
+    res.redirect('/dashboard?payment=success');
+  });
+
+  app.get('/payment/fail', (req, res) => {
+    res.redirect('/payment?error=payment_failed');
   });
 
   // Admin routes
