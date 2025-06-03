@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   PrinterIcon, 
   Palette, 
@@ -57,48 +56,13 @@ export default function Landing() {
               <a href="#pricing" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">Fiyatlar</a>
               <a href="#contact" className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors">İletişim</a>
             </nav>
-            {/* Desktop Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
               <Button variant="ghost" onClick={handleLogin} className="text-gray-700 hover:text-primary">
                 Giriş Yap
               </Button>
               <Button onClick={handleLogin} className="bg-primary text-white hover:bg-blue-700">
                 Ücretsiz Başla
               </Button>
-            </div>
-
-            {/* Mobile Dropdown Menu */}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="p-2">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 mt-2">
-                  <DropdownMenuItem 
-                    onClick={handleLogin}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Giriş Yap
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleLogin}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Müşteri Olarak Başla
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleLogin}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Matbaa Olarak Katıl
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -109,10 +73,10 @@ export default function Landing() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)] bg-[size:80px_80px]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(99,102,241,0.1),transparent_50%)] bg-[size:120px_120px]"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Action Buttons at Top - Hidden on Mobile (shown in dropdown) */}
-          <div className="hidden sm:flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          {/* Action Buttons at Top */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button 
-              onClick={handleLogin}
+              onClick={() => window.location.href = "/customer-register"}
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-12 py-5 text-lg shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 rounded-xl border-0"
             >
@@ -120,33 +84,12 @@ export default function Landing() {
               Müşteri Olarak Başla
             </Button>
             <Button 
-              onClick={handleLogin}
+              onClick={() => window.location.href = "/printer-register"}
               variant="outline"
               size="lg"
               className="border-2 border-gradient-to-r from-purple-400 to-pink-400 text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 hover:border-transparent font-bold px-12 py-5 text-lg backdrop-blur-lg bg-white/10 transition-all duration-300 transform hover:scale-105 rounded-xl"
             >
               <Building2 className="h-6 w-6 mr-3" />
-              Matbaa Olarak Katıl
-            </Button>
-          </div>
-          
-          {/* Mobile Action Buttons */}
-          <div className="sm:hidden flex flex-col gap-3 justify-center mb-12 px-4">
-            <Button 
-              onClick={handleLogin}
-              size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 text-base shadow-xl transition-all duration-300 rounded-xl border-0"
-            >
-              <Users className="h-5 w-5 mr-2" />
-              Müşteri Olarak Başla
-            </Button>
-            <Button 
-              onClick={handleLogin}
-              variant="outline"
-              size="lg"
-              className="w-full border-2 border-white text-white hover:bg-white hover:text-blue-900 font-bold py-4 text-base backdrop-blur-lg bg-white/10 transition-all duration-300 rounded-xl"
-            >
-              <Building2 className="h-5 w-5 mr-2" />
               Matbaa Olarak Katıl
             </Button>
           </div>
@@ -456,7 +399,9 @@ export default function Landing() {
                   </div>
                   <h3 className="text-xl font-bold mb-4 text-gray-900">Müşteri Portföyü Genişletme</h3>
                   <p className="text-gray-600 mb-4">10.000+ aktif müşteri ağımıza erişin. Yeni müşteriler otomatik olarak size yönlendirilir.</p>
-
+                  <div className="bg-orange-100 rounded-lg p-3 text-sm text-orange-800 font-medium">
+                    📈 Ortalama %40 iş hacmi artışı
+                  </div>
                 </CardContent>
               </Card>
 
