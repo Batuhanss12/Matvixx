@@ -58,9 +58,9 @@ export default function Landing() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, role })
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         toast({
           title: "Kayıt Başarılı",
@@ -109,7 +109,7 @@ export default function Landing() {
             <div className="hidden md:flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                onClick={() => setIsLoginModalOpen(true)}
+                onClick={() => setShowLoginForm('login')}
                 className="text-gray-700 hover:text-blue-600"
               >
                 <LogIn className="h-4 w-4 mr-2" />
@@ -143,7 +143,7 @@ export default function Landing() {
                     </div>
                   </div>
                 </DialogHeader>
-                
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[500px]">
                   {/* Login Options */}
                   <div className="p-6 flex flex-col justify-center">
@@ -152,7 +152,7 @@ export default function Landing() {
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">Hızlı Giriş</h3>
                         <p className="text-gray-600">Hesabınızı seçin ve hemen başlayın</p>
                       </div>
-                      
+
                       <Button 
                         onClick={() => {
                           console.log('Customer button clicked');
@@ -164,7 +164,7 @@ export default function Landing() {
                         <UserCheck className="h-5 w-5 group-hover:scale-110 transition-transform" />
                         <span>Müşteri Girişi</span>
                       </Button>
-                      
+
                       <Button 
                         onClick={() => {
                           console.log('Printer button clicked');
@@ -176,7 +176,7 @@ export default function Landing() {
                         <Building2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
                         <span>Matbaa Girişi</span>
                       </Button>
-                      
+
                       <Button 
                         onClick={() => {
                           console.log('Admin button clicked');
@@ -189,7 +189,7 @@ export default function Landing() {
                         <span>Admin Girişi</span>
                       </Button>
                     </div>
-                    
+
                     <div className="mt-8 pt-6 border-t border-gray-200">
                       <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                         <Shield className="h-4 w-4 text-blue-600" />
@@ -197,7 +197,7 @@ export default function Landing() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Info Panel */}
                   <div className="bg-gradient-to-br from-blue-600 to-purple-700 p-6 text-white flex flex-col justify-center lg:rounded-r-lg">
                     <div className="space-y-6">
@@ -205,7 +205,7 @@ export default function Landing() {
                         <h3 className="text-2xl font-bold mb-3">Matbixx Avantajları</h3>
                         <p className="text-blue-100 mb-6">Türkiye'nin en gelişmiş B2B matbaa platformunda yer alın</p>
                       </div>
-                      
+
                       <div className="space-y-4">
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -216,7 +216,7 @@ export default function Landing() {
                             <p className="text-sm text-blue-100">Yapay zeka ile profesyonel tasarımlar</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Clock className="h-4 w-4" />
@@ -226,7 +226,7 @@ export default function Landing() {
                             <p className="text-sm text-blue-100">Dakikalar içinde fiyat teklifleri</p>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-start space-x-3">
                           <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Shield className="h-4 w-4" />
@@ -254,7 +254,7 @@ export default function Landing() {
                 <LogIn className="h-4 w-4 mr-1" />
                 Giriş
               </Button>
-              
+
               <div className="relative z-50">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -275,7 +275,7 @@ export default function Landing() {
                       <h3 className="font-bold text-lg mb-1">Matbixx Premium</h3>
                       <p className="text-blue-100 text-sm">Türkiye'nin lider B2B matbaa platformu</p>
                     </div>
-                    
+
                     <div className="p-2">
                       <DropdownMenuItem className="rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-300 group cursor-pointer">
                         <div className="flex items-center w-full">
@@ -288,7 +288,7 @@ export default function Landing() {
                           </div>
                         </div>
                       </DropdownMenuItem>
-                      
+
                       <DropdownMenuItem className="rounded-xl p-4 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-300 group cursor-pointer">
                         <a href="#pricing" className="flex items-center w-full">
                           <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
@@ -300,7 +300,7 @@ export default function Landing() {
                           </div>
                         </a>
                       </DropdownMenuItem>
-                      
+
                       <DropdownMenuItem className="rounded-xl p-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-300 group cursor-pointer">
                         <div className="flex items-center w-full">
                           <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
@@ -313,7 +313,7 @@ export default function Landing() {
                         </div>
                       </DropdownMenuItem>
                     </div>
-                    
+
                     <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-100">
                       <Button 
                         onClick={() => setIsLoginModalOpen(true)}
@@ -368,7 +368,7 @@ export default function Landing() {
             <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in-up-delay">
               AI destekli tasarım araçları, anlık teklif sistemi ve güvenli ödeme çözümleri ile matbaa işlemlerinizi dijitalleştirin
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <div className="flex items-center space-x-2 text-blue-200">
                 <Shield className="h-5 w-5" />
@@ -429,7 +429,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Recent Orders */}
@@ -649,10 +649,10 @@ export default function Landing() {
               </CardContent>
               <CardFooter>
                 <Button 
-                  onClick={() => setIsLoginModalOpen(true)}
+                  onClick={() => setShowLoginForm('customer')}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Hemen Başla
+                  Müşteri Olarak Başla
                 </Button>
               </CardFooter>
             </Card>
@@ -705,10 +705,10 @@ export default function Landing() {
               </CardContent>
               <CardFooter>
                 <Button 
-                  onClick={() => setIsLoginModalOpen(true)}
+                  onClick={() => setShowLoginForm('printer')}
                   className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  Ücretsiz Dene
+                  Matbaa Olarak Katıl
                 </Button>
               </CardFooter>
             </Card>
@@ -784,7 +784,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-4">Ürün</h4>
               <ul className="space-y-2">
@@ -793,7 +793,7 @@ export default function Landing() {
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-4">Şirket</h4>
               <ul className="space-y-2">
@@ -802,7 +802,7 @@ export default function Landing() {
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-lg font-semibold mb-4">Destek</h4>
               <ul className="space-y-2">
@@ -821,108 +821,296 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* Registration Modal */}
+      {/* Premium Registration Modal */}
       {showLoginForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">
-                {showLoginForm === 'customer' && 'Müşteri Kayıt'}
-                {showLoginForm === 'printer' && 'Matbaa Kayıt'}
-                {showLoginForm === 'admin' && 'Admin Kayıt'}
-              </h3>
-              <button
-                onClick={() => setShowLoginForm(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={(e) => { e.preventDefault(); handleRegister(showLoginForm); }} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">Ad</Label>
-                  <Input
-                    id="firstName"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                    required
-                  />
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Header */}
+            <div className="p-6 pb-2 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                    {showLoginForm === 'customer' && <UserCheck className="h-6 w-6 text-white" />}
+                    {showLoginForm === 'printer' && <Building2 className="h-6 w-6 text-white" />}
+                    {showLoginForm === 'admin' && <Crown className="h-6 w-6 text-white" />}
+                    {showLoginForm === 'login' && <LogIn className="h-6 w-6 text-white" />}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {showLoginForm === 'customer' && 'Müşteri Kayıt'}
+                      {showLoginForm === 'printer' && 'Matbaa Kayıt'}
+                      {showLoginForm === 'admin' && 'Admin Giriş'}
+                      {showLoginForm === 'login' && 'Panel Girişi'}
+                    </h3>
+                    <p className="text-gray-600 mt-1">
+                      {showLoginForm === 'customer' && 'Matbaa hizmetlerinden yararlanmak için kaydolun'}
+                      {showLoginForm === 'printer' && 'Matbaa işletmenizi platformda tanıtın'}
+                      {showLoginForm === 'admin' && 'Yönetici paneline erişim sağlayın'}
+                      {showLoginForm === 'login' && 'Mevcut hesabınızla panellere giriş yapın'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="lastName">Soyad</Label>
-                  <Input
-                    id="lastName"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="email">E-posta</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">Telefon</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  required
-                />
-              </div>
-
-              {showLoginForm === 'printer' && (
-                <div>
-                  <Label htmlFor="companyName">Şirket Adı</Label>
-                  <Input
-                    id="companyName"
-                    value={formData.companyName}
-                    onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                    required
-                  />
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="password">Şifre</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  required
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
+                <button
                   onClick={() => setShowLoginForm(null)}
-                  className="flex-1"
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-light"
                 >
-                  İptal
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  {isLoading ? 'Kayıt Oluşturuluyor...' : 'Kayıt Ol'}
-                </Button>
+                  ×
+                </button>
               </div>
-            </form>
+            </div>
+            
+            {/* Existing User Login */}
+            {showLoginForm === 'login' && (
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <a 
+                    href="/api/login?role=customer"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                  >
+                    <UserCheck className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span>Müşteri Paneli</span>
+                  </a>
+                  
+                  <a 
+                    href="/api/login?role=printer"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                  >
+                    <Building2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span>Matbaa Paneli</span>
+                  </a>
+                  
+                  <a 
+                    href="/api/login?role=admin"
+                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                  >
+                    <Crown className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                    <span>Admin Paneli</span>
+                  </a>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                    <Shield className="h-4 w-4" />
+                    <span>Hesabınız yok mu? Ana sayfadaki kayıt butonlarını kullanın</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Registration Forms */}
+            {(showLoginForm === 'customer' || showLoginForm === 'printer') && (
+              <form onSubmit={(e) => { e.preventDefault(); handleRegister(showLoginForm); }} className="p-6 space-y-6">
+                {/* Personal Information */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-blue-600" />
+                    Kişisel Bilgiler
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                        Ad *
+                      </Label>
+                      <Input
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        required
+                        placeholder="Adınızı girin"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                        Soyad *
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        required
+                        placeholder="Soyadınızı girin"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        E-posta *
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        required
+                        placeholder="ornek@email.com"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                        Telefon *
+                      </Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                        required
+                        placeholder="0XXX XXX XX XX"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Şifre *
+                      </Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        required
+                        placeholder="Güçlü bir şifre oluşturun"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Company Information for Printer */}
+                {showLoginForm === 'printer' && (
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                      <Building2 className="h-5 w-5 mr-2 text-purple-600" />
+                      Şirket Bilgileri
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+                          Şirket Adı *
+                        </Label>
+                        <Input
+                          id="companyName"
+                          value={formData.companyName || ''}
+                          onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                          required
+                          placeholder="Şirket adınızı girin"
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="taxNumber" className="text-sm font-medium text-gray-700">
+                          Vergi Numarası
+                        </Label>
+                        <Input
+                          id="taxNumber"
+                          value={formData.taxNumber || ''}
+                          onChange={(e) => setFormData({...formData, taxNumber: e.target.value})}
+                          placeholder="Vergi numaranızı girin"
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Agreements */}
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                    <FileText className="h-5 w-5 mr-2 text-green-600" />
+                    Sözleşmeler ve Onaylar
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        required
+                        className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="terms" className="text-sm text-gray-700">
+                        <span className="font-medium">Kullanım Şartları</span> ve <span className="font-medium">Gizlilik Politikası</span>'nı okudum ve kabul ediyorum. *
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        id="marketing"
+                        className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="marketing" className="text-sm text-gray-700">
+                        Kampanya, duyuru ve özel fırsatlar hakkında e-posta almak istiyorum.
+                      </label>
+                    </div>
+                    
+                    {showLoginForm === 'printer' && (
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="printerContract"
+                          required
+                          className="mt-1 h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <label htmlFor="printerContract" className="text-sm text-gray-700">
+                          <span className="font-medium">Matbaa Ortaklık Sözleşmesi</span>'ni okudum ve kabul ediyorum. Platform komisyon oranları ve ödeme koşullarını onaylıyorum. *
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowLoginForm(null)}
+                    className="flex-1 py-3"
+                  >
+                    İptal
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`flex-1 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ${
+                      showLoginForm === 'customer' 
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white' 
+                        : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span>Hesap Oluşturuluyor...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center space-x-2">
+                        <CheckCircle className="h-5 w-5" />
+                        <span>{showLoginForm === 'customer' ? 'Müşteri Hesabı Oluştur' : 'Matbaa Hesabı Oluştur'}</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="text-center pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500">
+                    Zaten hesabınız var mı? 
+                    <button 
+                      type="button"
+                      onClick={() => setShowLoginForm('login')}
+                      className="text-blue-600 hover:text-blue-700 font-medium ml-1"
+                    >
+                      Giriş yapın
+                    </button>
+                  </p>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
