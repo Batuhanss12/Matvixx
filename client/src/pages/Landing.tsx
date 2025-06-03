@@ -112,7 +112,7 @@ export default function Landing() {
             <div className="hidden md:flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                onClick={() => setShowLoginForm('login')}
+                onClick={() => setIsLoginModalOpen(true)}
                 className="text-gray-700 hover:text-blue-600"
               >
                 <LogIn className="h-4 w-4 mr-2" />
@@ -121,10 +121,8 @@ export default function Landing() {
 
             </div>
 
-            <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-              <DialogTrigger asChild>
-                <div style={{ display: 'none' }}></div>
-              </DialogTrigger>
+            <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}
+              >
               <DialogContent className="sm:max-w-4xl p-0 bg-gradient-to-br from-gray-50 to-blue-50">
                 <DialogHeader className="p-6 pb-2">
                   <div className="flex items-center justify-between">
@@ -153,8 +151,7 @@ export default function Landing() {
 
                       <Button 
                         onClick={() => {
-                          console.log('Customer button clicked');
-                          setShowLoginForm('customer');
+                          window.location.href = '/api/login?role=customer';
                         }}
                         className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
                         style={{ pointerEvents: 'auto' }}
@@ -165,8 +162,7 @@ export default function Landing() {
 
                       <Button 
                         onClick={() => {
-                          console.log('Printer button clicked');
-                          setShowLoginForm('printer');
+                          window.location.href = '/api/login?role=printer';
                         }}
                         className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
                         style={{ pointerEvents: 'auto' }}
@@ -177,8 +173,7 @@ export default function Landing() {
 
                       <Button 
                         onClick={() => {
-                          console.log('Admin button clicked');
-                          setShowLoginForm('admin');
+                          window.location.href = '/api/login?role=admin';
                         }}
                         className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
                         style={{ pointerEvents: 'auto' }}
@@ -317,7 +312,7 @@ export default function Landing() {
                         onClick={() => setIsLoginModalOpen(true)}
                         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg"
                       >
-                        Hemen Ücretsiz Başla
+                        Giriş Yap
                       </Button>
                     </div>
                   </DropdownMenuContent>
@@ -339,8 +334,7 @@ export default function Landing() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setShowLoginForm('customer');
-                setIsLoginModalOpen(true);
+                window.location.href = '/customer-register';
               }}
               size="lg" 
               className="bg-white text-blue-900 hover:bg-blue-50 px-8 py-4 text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto border-2 border-white"
@@ -352,8 +346,7 @@ export default function Landing() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setShowLoginForm('printer');
-                setIsLoginModalOpen(true);
+                window.location.href = '/printer-register';
               }}
               variant="outline" 
               size="lg" 
@@ -660,8 +653,7 @@ export default function Landing() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setShowLoginForm('customer');
-                    setIsLoginModalOpen(true);
+                    window.location.href = '/customer-register';
                   }}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
@@ -721,8 +713,7 @@ export default function Landing() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setShowLoginForm('printer');
-                    setIsLoginModalOpen(true);
+                    window.location.href = '/printer-register';
                   }}
                   className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
