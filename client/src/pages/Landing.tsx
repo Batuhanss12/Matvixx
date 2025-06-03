@@ -62,6 +62,10 @@ export default function Landing() {
         body: JSON.stringify({ ...formData, role })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -76,6 +80,7 @@ export default function Landing() {
         throw new Error(data.message || "Kayıt işlemi başarısız");
       }
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: "Hata",
         description: error.message || "Kayıt işlemi başarısız",
@@ -112,7 +117,13 @@ export default function Landing() {
             <div className="hidden md:flex items-center space-x-4">
               <Button 
                 variant="ghost" 
-                onClick={() => setIsLoginModalOpen(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!isLoginModalOpen) {
+                    setIsLoginModalOpen(true);
+                  }
+                }}
                 className="text-gray-700 hover:text-blue-600"
               >
                 <LogIn className="h-4 w-4 mr-2" />
@@ -121,8 +132,7 @@ export default function Landing() {
 
             </div>
 
-            <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}
-              >
+            <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
               <DialogContent className="sm:max-w-4xl p-0 bg-gradient-to-br from-gray-50 to-blue-50">
                 <DialogHeader className="p-6 pb-2">
                   <div className="flex items-center justify-between">
@@ -150,33 +160,24 @@ export default function Landing() {
                       </div>
 
                       <Button 
-                        onClick={() => {
-                          window.location.href = '/api/login?role=customer';
-                        }}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
-                        style={{ pointerEvents: 'auto' }}
+                        onClick={() => setShowLoginForm('login')}
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group"
                       >
                         <UserCheck className="h-5 w-5 group-hover:scale-110 transition-transform" />
                         <span>Müşteri Girişi</span>
                       </Button>
 
                       <Button 
-                        onClick={() => {
-                          window.location.href = '/api/login?role=printer';
-                        }}
-                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
-                        style={{ pointerEvents: 'auto' }}
+                        onClick={() => setShowLoginForm('login')}
+                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group"
                       >
                         <Building2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
                         <span>Matbaa Girişi</span>
                       </Button>
 
                       <Button 
-                        onClick={() => {
-                          window.location.href = '/api/login?role=admin';
-                        }}
-                        className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group relative z-10"
-                        style={{ pointerEvents: 'auto' }}
+                        onClick={() => setShowLoginForm('login')}
+                        className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center space-x-3 group"
                       >
                         <Crown className="h-5 w-5 group-hover:scale-110 transition-transform" />
                         <span>Admin Girişi</span>
@@ -309,7 +310,13 @@ export default function Landing() {
 
                     <div className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 border-t border-gray-100">
                       <Button 
-                        onClick={() => setIsLoginModalOpen(true)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!isLoginModalOpen) {
+                            setIsLoginModalOpen(true);
+                          }
+                        }}
                         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg"
                       >
                         Giriş Yap
@@ -868,41 +875,92 @@ export default function Landing() {
               </div>
             </div>
             
-            {/* Existing User Login */}
+            {/* Login Form */}
             {showLoginForm === 'login' && (
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  <a 
-                    href="/api/login?role=customer"
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
-                  >
-                    <UserCheck className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                    <span>Müşteri Paneli</span>
-                  </a>
-                  
-                  <a 
-                    href="/api/login?role=printer"
-                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
-                  >
-                    <Building2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                    <span>Matbaa Paneli</span>
-                  </a>
-                  
-                  <a 
-                    href="/api/login?role=admin"
-                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-xl font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
-                  >
-                    <Crown className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                    <span>Admin Paneli</span>
-                  </a>
-                </div>
-                
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-                    <Shield className="h-4 w-4" />
-                    <span>Hesabınız yok mu? Ana sayfadaki kayıt butonlarını kullanın</span>
+              <div className="p-6 space-y-6">
+                <form className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="loginEmail" className="text-sm font-medium text-gray-700">
+                        E-posta
+                      </Label>
+                      <Input
+                        id="loginEmail"
+                        type="email"
+                        placeholder="ornek@email.com"
+                        className="mt-1"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="loginPassword" className="text-sm font-medium text-gray-700">
+                        Şifre
+                      </Label>
+                      <Input
+                        id="loginPassword"
+                        type="password"
+                        placeholder="Şifrenizi girin"
+                        className="mt-1"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button 
+                      type="submit"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Simulated login - redirect to customer panel
+                        window.location.href = '/customer-dashboard';
+                      }}
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                    >
+                      <UserCheck className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                      <span>Müşteri Olarak Giriş</span>
+                    </Button>
+                    
+                    <Button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Simulated login - redirect to printer panel
+                        window.location.href = '/printer-dashboard';
+                      }}
+                      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                    >
+                      <Building2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                      <span>Matbaa Olarak Giriş</span>
+                    </Button>
+                    
+                    <Button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Simulated login - redirect to admin panel
+                        window.location.href = '/admin-dashboard';
+                      }}
+                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3 group"
+                    >
+                      <Crown className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                      <span>Admin Olarak Giriş</span>
+                    </Button>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200">
+                    <p className="text-center text-sm text-gray-500">
+                      Hesabınız yok mu? 
+                      <button 
+                        type="button"
+                        onClick={() => setShowLoginForm(null)}
+                        className="text-blue-600 hover:text-blue-700 font-medium ml-1"
+                      >
+                        Ana sayfaya dönün ve kayıt olun
+                      </button>
+                    </p>
+                  </div>
+                </form>
               </div>
             )}
             
