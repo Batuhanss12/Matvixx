@@ -42,11 +42,11 @@ const upload = multer({
       'image/jpeg',
       'image/png'
     ];
-    
+
     // Also check file extensions for AI files (often have generic mimetype)
     const fileExt = file.originalname.toLowerCase().split('.').pop();
     const allowedExtensions = ['pdf', 'svg', 'ai', 'eps', 'jpg', 'jpeg', 'png'];
-    
+
     if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExt || '')) {
       cb(null, true);
     } else {
@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/register', async (req, res) => {
     try {
       const { firstName, lastName, email, phone, companyName, password, role, address, city, postalCode, taxNumber } = req.body;
-      
+
       // Validate required fields based on role
       if (!firstName || !lastName || !email || !phone || !role) {
         return res.status(400).json({ success: false, message: "Gerekli alanlar eksik" });
@@ -76,11 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (emailExists) {
         return res.status(400).json({ success: false, message: "Bu e-posta adresi zaten kayıtlı" });
       }
-      
+
       // Generate unique user ID with role prefix
       const rolePrefix = role === 'customer' ? 'CUS' : role === 'printer' ? 'PRT' : 'ADM';
       const userId = `${rolePrefix}-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-      
+
       // Role-specific user data configuration
       const userData: any = {
         id: userId,
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userData.subscriptionStatus = 'active';
         userData.companyName = 'Matbixx Admin';
       }
-      
+
       // Create user in database
       const newUser = await storage.upsertUser(userData);
 
@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({ success: false, message: "Email ve şifre gerekli" });
       }
@@ -148,7 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find user by email
       const users = await storage.getAllUsers();
       const user = users.find(u => u.email === email);
-      
+
       if (!user) {
         return res.status(401).json({ success: false, message: "Email veya şifre hatalı" });
       }
@@ -184,12 +184,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "User session not found" });
       }
-      
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -202,11 +202,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims?.sub || req.user.id;
       const { role } = req.body;
-      
+
       if (!['customer', 'printer', 'admin'].includes(role)) {
         return res.status(400).json({ message: "Invalid role" });
       }
-      
+
       await storage.updateUserRole(userId, role);
       res.json({ message: "Role updated successfully" });
     } catch (error) {
@@ -220,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const updateData = req.body;
-      
+
       const currentUser = await storage.getUser(userId);
       if (!currentUser) {
         return res.status(404).json({ message: "User not found" });
@@ -333,11 +333,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileId = req.params.id;
       const files = await storage.getFilesByUser(req.user.claims.sub);
       const file = files.find(f => f.id === fileId);
-      
+
       if (!file) {
         return res.status(404).json({ message: "File not found" });
       }
-      
+
       res.json(file);
     } catch (error) {
       console.error("Error fetching file:", error);
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/files/:filename', isAuthenticated, (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(uploadDir, filename);
-    
+
     if (fs.existsSync(filePath)) {
       res.sendFile(filePath);
     } else {
@@ -362,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'customer') {
         return res.status(403).json({ message: "Only customers can create quotes" });
       }
@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id || req.user?.claims?.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -413,7 +413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const quoteId = req.params.id;
       const quote = await storage.getQuote(quoteId);
-      
+
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
       }
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const quoteId = req.params.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Only printers can submit quotes" });
       }
@@ -443,10 +443,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const printerQuote = await storage.createPrinterQuote(printerQuoteData);
-      
+
       // Update quote status to received_quotes
       await storage.updateQuoteStatus(quoteId, "received_quotes");
-      
+
       res.json(printerQuote);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -492,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create chat room automatically when contract is approved
       try {
         const existingRoom = await storage.getChatRoomByQuote(quoteId, quote.customerId, printerId);
-        
+
         if (!existingRoom) {
           await storage.createChatRoom({
             quoteId,
@@ -518,7 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id || req.user?.claims?.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.id || req.user?.claims?.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -590,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'customer') {
         return res.status(403).json({ message: "Only customers can submit ratings" });
       }
@@ -616,13 +616,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims?.sub || req.user.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       const { prompt, options = {} } = req.body;
-      
+
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ message: "Prompt is required" });
       }
@@ -638,7 +638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has enough credit (35₺ per design)
       const designCost = 35;
       const currentBalance = parseFloat(user.creditBalance || '0');
-      
+
       if (currentBalance < designCost) {
         return res.status(400).json({ 
           message: "Insufficient credit balance. Please add credit to your account.",
@@ -648,11 +648,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const result = await ideogramService.generateImage(prompt, options);
-      
+
       // Deduct credit from user balance
       const newBalance = currentBalance - designCost;
       await storage.updateUserCreditBalance(userId, newBalance.toString());
-      
+
       // Save generation history
       await storage.saveDesignGeneration({
         userId,
@@ -677,13 +677,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       const { requests } = req.body;
-      
+
       if (!Array.isArray(requests) || requests.length === 0) {
         return res.status(400).json({ message: "Requests array is required" });
       }
@@ -693,7 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const results = await ideogramService.generateBatch(requests);
-      
+
       // Save batch generation history
       for (let i = 0; i < requests.length; i++) {
         await storage.saveDesignGeneration({
@@ -716,7 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { page = 1, limit = 20 } = req.query;
-      
+
       const history = await storage.getDesignHistory(userId, {
         page: parseInt(page),
         limit: parseInt(limit)
@@ -743,22 +743,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/payment/create', isAuthenticated, async (req: any, res) => {
     try {
       const { planType, amount, customer, paymentMethod } = req.body;
-      
+
       if (!planType || !amount || !customer || !paymentMethod) {
         return res.status(400).json({ message: 'Eksik ödeme bilgileri' });
       }
 
       const userId = req.user.claims.sub;
       const creditAmount = parseFloat(amount);
-      
+
       // Test modunda krediyi direkt ekle (PayTR Pro API olmadan)
       const currentUser = await storage.getUser(userId);
       if (currentUser) {
         const currentBalance = parseFloat(currentUser.creditBalance || "0") || 0;
         const newBalance = currentBalance + creditAmount;
-        
+
         await storage.updateUserCreditBalance(userId, newBalance.toString());
-        
+
         return res.json({
           success: true,
           message: `${creditAmount}₺ kredi hesabınıza eklendi (Test Modu)`,
@@ -781,21 +781,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { paytrService } = await import('./paytr');
       const isValid = paytrService.verifyCallback(req.body);
-      
+
       if (isValid) {
         const { merchant_oid, status, total_amount } = req.body;
-        
+
         if (status === 'success') {
           // Payment successful - update user subscription or credit
           console.log(`Payment successful for order: ${merchant_oid}, amount: ${total_amount}`);
-          
+
           // Extract user info from merchant_oid if needed
           // Format: userid_plantype_timestamp
           const orderParts = merchant_oid.split('_');
           if (orderParts.length >= 2) {
             const userId = orderParts[0];
             const planType = orderParts[1];
-            
+
             if (planType === 'customer') {
               // Add credit to customer account
               const creditAmount = parseFloat(total_amount);
@@ -811,7 +811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         res.send('OK');
       } else {
         res.status(400).send('Invalid hash');
@@ -836,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -853,13 +853,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      const stats = await storage.getUserStats();
-      res.json(stats);
+      const stats = await storage.getUserStats();      res.json(stats);
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
@@ -870,7 +869,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -899,7 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const validatedData = insertChatRoomSchema.parse(req.body);
-      
+
       // Check if contract is approved for this quote
       const quote = await storage.getQuote(validatedData.quoteId);
       if (!quote || quote.status !== 'approved') {
@@ -912,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId !== validatedData.customerId && userId !== validatedData.printerId) {
         return res.status(403).json({ message: "Unauthorized" });
       }
-      
+
       // Check if room already exists for this quote and participants
       const existingRoom = await storage.getChatRoomByQuote(
         validatedData.quoteId,
@@ -936,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { roomId } = req.params;
       const { limit = 50 } = req.query;
-      
+
       const messages = await storage.getMessages(roomId, parseInt(limit as string));
       res.json(messages);
     } catch (error) {
@@ -949,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { roomId } = req.params;
       const userId = req.user.claims.sub;
-      
+
       // Verify room exists and user has access
       const room = await storage.getChatRoom(roomId);
       if (!room) {
@@ -968,7 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId !== room.customerId && userId !== room.printerId) {
         return res.status(403).json({ message: "Unauthorized" });
       }
-      
+
       const validatedData = insertChatMessageSchema.parse({
         ...req.body,
         roomId,
@@ -976,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const message = await storage.sendMessage(validatedData);
-      
+
       // Broadcast to WebSocket clients
       broadcastToRoom(roomId, {
         type: 'new_message',
@@ -994,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { roomId } = req.params;
       const userId = req.user.claims.sub;
-      
+
       await storage.markMessagesAsRead(roomId, userId);
       res.json({ success: true });
     } catch (error) {
@@ -1019,7 +1018,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -1045,7 +1044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const { signature } = req.body;
       const userId = req.user?.claims?.sub || req.session?.user?.id;
-      
+
       if (!signature || !signature.trim()) {
         return res.status(400).json({ message: "Signature is required" });
       }
@@ -1063,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1112,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1153,13 +1152,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { name, settings } = req.body;
-      
+
       if (!name || !settings) {
         return res.status(400).json({ message: "Name and settings are required" });
       }
@@ -1185,7 +1184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1204,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const uploadedDesigns = [];
-      
+
       for (const file of files) {
         console.log('Processing file:', {
           originalname: file.originalname,
@@ -1216,9 +1215,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Process each design file
         const metadata = await fileProcessingService.processFile(file.path, file.mimetype);
-        
+
         console.log('File metadata:', metadata);
-        
+
         // Generate thumbnail for preview
         let thumbnailPath = '';
         try {
@@ -1283,16 +1282,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       // Actually delete design files from database
       const deletedCount = await storage.deleteFilesByUserAndType(userId, 'design');
-      
+
       console.log(`Cleared ${deletedCount} design files for user ${userId}`);
-      
+
       res.json({ 
         message: "All design files cleared", 
         deletedCount 
@@ -1308,7 +1307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1316,9 +1315,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's uploaded files from database (only design files)
       const userFiles = await storage.getFilesByUser(userId);
       const designFiles = userFiles.filter(file => file.fileType === 'design');
-      
+
       console.log(`Found ${designFiles.length} design files for user ${userId}`);
-      
+
       const designs = designFiles.map(file => ({
         id: file.id,
         name: file.originalName || file.filename,
@@ -1349,13 +1348,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { designIds, plotterSettings } = req.body;
-      
+
       if (!designIds || !Array.isArray(designIds) || designIds.length === 0) {
         return res.status(400).json({ message: "Design IDs are required" });
       }
@@ -1384,9 +1383,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validDesigns = designFiles.map(file => {
         let width = 50; // default mm
         let height = 30; // default mm
-        
+
         console.log(`Processing design ${file!.id}: realDimensionsMM=${file!.realDimensionsMM}, dimensions=${file!.dimensions}`);
-        
+
         // First try to parse realDimensionsMM field 
         if (file!.realDimensionsMM && file!.realDimensionsMM !== 'Unknown' && file!.realDimensionsMM !== 'Bilinmiyor') {
           const realMatch = file!.realDimensionsMM.match(/(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)/);
@@ -1402,7 +1401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (dimMatch) {
             width = parseFloat(dimMatch[1]);
             height = parseFloat(dimMatch[2]);
-            
+
             // Convert pixels to mm if needed (assuming 300 DPI for print quality)
             if (width > 500 || height > 500) {
               width = (width / 300) * 25.4; // px to mm at 300 DPI
@@ -1411,7 +1410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         return {
           id: file!.id,
           width: width,
@@ -1424,12 +1423,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const SHEET_WIDTH = 330; // 33cm fixed
       const SHEET_HEIGHT = 480; // 48cm fixed
       const MARGIN = 5; // 0.5cm margin
-      
+
       const usableWidth = SHEET_WIDTH - (MARGIN * 2);
       const usableHeight = SHEET_HEIGHT - (MARGIN * 2);
-      
+
       console.log(`Usable area: ${usableWidth}x${usableHeight}mm`);
-      
+
       const arrangements: any[] = [];
       let currentX = MARGIN;
       let currentY = MARGIN;
@@ -1438,11 +1437,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Sort designs by area (largest first) for better packing
       validDesigns.sort((a, b) => (b.width * b.height) - (a.width * a.height));
-      
+
       for (const design of validDesigns) {
         const designWidth = design.width + 3; // Add 3mm cutting margin
         const designHeight = design.height + 3; // Add 3mm cutting margin
-        
+
         // Check if design fits in current row
         if (currentX + designWidth <= SHEET_WIDTH - MARGIN) {
           // Place in current row
@@ -1457,11 +1456,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               height: designHeight
             }
           });
-          
+
           currentX += designWidth + 2; // Add 2mm spacing
           rowHeight = Math.max(rowHeight, designHeight);
           totalArranged++;
-          
+
           console.log(`Placed design ${design.name} at (${currentX - designWidth - 2}, ${currentY})`);
         } 
         // Try new row
@@ -1469,7 +1468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentY += rowHeight + 2; // Move to next row with spacing
           currentX = MARGIN;
           rowHeight = designHeight;
-          
+
           arrangements.push({
             designId: design.id,
             x: currentX,
@@ -1481,10 +1480,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               height: designHeight
             }
           });
-          
+
           currentX += designWidth + 2;
           totalArranged++;
-          
+
           console.log(`Placed design ${design.name} at (${MARGIN}, ${currentY}) - new row`);
         }
         else {
@@ -1522,19 +1521,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { plotterSettings, arrangements } = req.body;
-      
+
       console.log('PDF generation request received');
       console.log('Arrangements data:', JSON.stringify(arrangements, null, 2));
 
       // Extract arrangement items from the data structure
       let arrangedItems = [];
-      
+
       if (Array.isArray(arrangements)) {
         // Direct array of arrangements
         arrangedItems = arrangements;
@@ -1580,7 +1579,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set response headers
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename="matbixx-layout-33x48cm.pdf"');
-      
+
       // Pipe PDF to response
       doc.pipe(res);
 
@@ -1588,7 +1587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       doc.fontSize(16)
          .fillColor('black')
          .text('Matbixx - Otomatik Tasarım Dizimi', 50, 50);
-      
+
       doc.fontSize(10)
          .text('Baskı Alanı: 33cm x 48cm | Kesim Payı: 0.3cm', 50, 70)
          .text(`Toplam Tasarım: ${arrangedItems.length} | Algoritma: 2D Bin Packing`, 50, 85);
@@ -1597,7 +1596,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const BORDER_MARGIN = 14.17; // 5mm in points
       const SHEET_WIDTH = 330 * 2.834645669; // 33cm in points
       const SHEET_HEIGHT = 480 * 2.834645669; // 48cm in points
-      
+
       doc.strokeColor('black')
          .lineWidth(1)
          .rect(BORDER_MARGIN, BORDER_MARGIN + 100, 
@@ -1611,7 +1610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const y = (arrangement.y * 2.834645669) + BORDER_MARGIN + 100; // Convert mm to points + header offset
         const width = arrangement.width * 2.834645669; // Convert mm to points
         const height = arrangement.height * 2.834645669; // Convert mm to points
-        
+
         // Draw cutting margin (0.3cm = 3mm)
         const margin = 3 * 2.834645669; // 3mm in points
         doc.strokeColor('#CCCCCC')
@@ -1636,7 +1635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.fillColor('black')
            .fontSize(8)
            .text(`${index + 1}. Tasarım`, x + 5, y + 5);
-        
+
         doc.fontSize(6)
            .text(`${arrangement.width.toFixed(1)} x ${arrangement.height.toFixed(1)} mm`, 
                  x + 5, y + 15);
@@ -1684,10 +1683,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
-        
+
         if (message.type === 'join_room') {
           const { roomId } = message;
-          
+
           // Verify room exists and user has access
           const room = await storage.getChatRoom(roomId);
           if (!room) {
@@ -1707,12 +1706,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }));
             return;
           }
-          
+
           if (!clients.has(roomId)) {
             clients.set(roomId, new Set());
           }
           clients.get(roomId)!.add(ws);
-          
+
           ws.send(JSON.stringify({
             type: 'room_joined',
             roomId
@@ -1753,13 +1752,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Extended Plotter Data Service API Endpoints
-  
+
   // Plotter models endpoint
   app.get('/api/automation/plotter/models', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1778,7 +1777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1797,7 +1796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
@@ -1817,14 +1816,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { plotterDataService } = await import('./plotterDataService');
       const { plotterId, materialId } = req.body;
-      
+
       if (!plotterId || !materialId) {
         return res.status(400).json({ message: "Plotter ve materyal ID'si gerekli" });
       }
@@ -1842,14 +1841,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { plotterDataService } = await import('./plotterDataService');
       const { designCount, designWidth, designHeight, plotterWidth, spacing } = req.body;
-      
+
       if (!designCount || !designWidth || !designHeight || !plotterWidth) {
         return res.status(400).json({ message: "Tüm boyut parametreleri gerekli" });
       }
@@ -1869,14 +1868,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user?.claims?.sub || req.session?.user?.id;
       const user = await storage.getUser(userId);
-      
+
       if (!user || user.role !== 'printer') {
         return res.status(403).json({ message: "Printer access required" });
       }
 
       const { plotterDataService } = await import('./plotterDataService');
       const { designs, plotterSettings } = req.body;
-      
+
       if (!designs || !plotterSettings) {
         return res.status(400).json({ message: "Tasarım ve plotter ayarları gerekli" });
       }
