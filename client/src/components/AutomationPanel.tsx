@@ -85,10 +85,12 @@ export default function AutomationPanel() {
   });
 
   // Get designs from API with better error handling
-  const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading } = useQuery({
+  const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading, error: designsError } = useQuery({
     queryKey: ['/api/automation/plotter/designs'],
     enabled: true,
     refetchInterval: 2000,
+    retry: 3,
+    retryDelay: 1000,
     onSuccess: (data) => {
       console.log('🎨 Designs loaded:', data?.length || 0, 'designs');
       if (data && data.length > 0) {
@@ -97,6 +99,11 @@ export default function AutomationPanel() {
     },
     onError: (error) => {
       console.error('❌ Error loading designs:', error);
+      toast({
+        title: "Tasarım Yükleme Hatası",
+        description: "Tasarımlar yüklenirken bir hata oluştu. Sayfa yenileniyor...",
+        variant: "destructive",
+      });
     }
   });
 
@@ -188,10 +195,16 @@ export default function AutomationPanel() {
         throw new Error('En az bir tasarım seçilmelidir');
       }
 
-      return apiRequest('POST', '/api/automation/plotter/auto-arrange', {
-        designIds,
-        plotterSettings
-      });
+      try {
+        const result = await apiRequest('POST', '/api/automation/plotter/auto-arrange', {
+          designIds,
+          plotterSettings
+        });
+        return result;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw new Error('Dizilim API isteği başarısız oldu');
+      }
     },
     onSuccess: (data) => {
       console.log('✅ Auto-arrange successful:', data);
@@ -209,6 +222,13 @@ export default function AutomationPanel() {
           generatePdfMutation.mutate({ 
             plotterSettings, 
             arrangements: data.arrangements
+          }).catch((pdfError) => {
+            console.error('PDF generation failed:', pdfError);
+            toast({
+              title: "PDF Hatası",
+              description: "PDF oluşturulurken bir hata oluştu",
+              variant: "destructive",
+            });
           });
         }, 1000);
       }
@@ -290,45 +310,50 @@ export default function AutomationPanel() {
     setLayoutName(savedLayout.name);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-    // Filter only vector files
-    const vectorFiles = Array.from(files).filter(file => {
-      const allowedTypes = [
-        'application/pdf',
-        'image/svg+xml',
-        'application/postscript', // AI files
-        'application/eps', // EPS files
-        'image/eps'
-      ];
-      return allowedTypes.includes(file.type) || 
-             file.name.toLowerCase().endsWith('.ai') ||
-             file.name.toLowerCase().endsWith('.eps') ||
-             file.name.toLowerCase().endsWith('.svg') ||
-             file.name.toLowerCase().endsWith('.pdf');
-    });
-
-    if (vectorFiles.length === 0) {
-      toast({
-        title: "Hata",
-        description: "Sadece vektörel dosyalar (PDF, SVG, AI, EPS) kabul edilmektedir.",
-        variant: "destructive",
+      // Filter only vector files
+      const vectorFiles = Array.from(files).filter(file => {
+        const allowedTypes = [
+          'application/pdf',
+          'image/svg+xml',
+          'application/postscript', // AI files
+          'application/eps', // EPS files
+          'image/eps'
+        ];
+        return allowedTypes.includes(file.type) || 
+               file.name.toLowerCase().endsWith('.ai') ||
+               file.name.toLowerCase().endsWith('.eps') ||
+               file.name.toLowerCase().endsWith('.svg') ||
+               file.name.toLowerCase().endsWith('.pdf');
       });
+
+      if (vectorFiles.length === 0) {
+        toast({
+          title: "Hata",
+          description: "Sadece vektörel dosyalar (PDF, SVG, AI, EPS) kabul edilmektedir.",
+          variant: "destructive",
+        });
+        event.target.value = '';
+        return;
+      }
+
+      const formData = new FormData();
+      vectorFiles.forEach((file) => {
+        formData.append('designs', file);
+      });
+
+      await uploadDesignsMutation.mutateAsync(formData);
+
+      // Reset file input
       event.target.value = '';
-      return;
+    } catch (error) {
+      console.error('File upload handler error:', error);
+      event.target.value = '';
     }
-
-    const formData = new FormData();
-    vectorFiles.forEach((file) => {
-      formData.append('designs', file);
-    });
-
-    uploadDesignsMutation.mutate(formData);
-
-    // Reset file input
-    event.target.value = '';
   };
 
   const toggleDesignSelection = (designId: string) => {
@@ -339,31 +364,36 @@ export default function AutomationPanel() {
     );
   };
 
-  const handleAutoArrange = () => {
-    console.log('🎯 Handle auto arrange triggered');
-    console.log('Selected designs:', selectedDesigns);
-    console.log('All designs:', designs);
+  const handleAutoArrange = async () => {
+    try {
+      console.log('🎯 Handle auto arrange triggered');
+      console.log('Selected designs:', selectedDesigns);
+      console.log('All designs:', designs);
 
-    // If no designs are selected, use all available designs
-    const designsToArrange = selectedDesigns.length > 0 
-      ? selectedDesigns 
-      : (designs || []).filter(d => d && d.id && d.fileType === 'design').map(d => d.id);
+      // If no designs are selected, use all available designs
+      const designsToArrange = selectedDesigns.length > 0 
+        ? selectedDesigns 
+        : (designs || []).filter(d => d && d.id && d.fileType === 'design').map(d => d.id);
 
-    console.log('Designs to arrange:', designsToArrange);
+      console.log('Designs to arrange:', designsToArrange);
 
-    if (designsToArrange.length === 0) {
-      toast({
-        title: "Uyarı", 
-        description: "Dizilim için tasarım bulunamadı. Önce tasarım yükleyin.",
-        variant: "destructive",
+      if (designsToArrange.length === 0) {
+        toast({
+          title: "Uyarı", 
+          description: "Dizilim için tasarım bulunamadı. Önce tasarım yükleyin.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await autoArrangeMutation.mutateAsync({
+        designIds: designsToArrange,
+        plotterSettings
       });
-      return;
+    } catch (error) {
+      console.error('Handle auto arrange error:', error);
+      // Error is already handled in mutation onError
     }
-
-    autoArrangeMutation.mutate({
-      designIds: designsToArrange,
-      plotterSettings
-    });
   };
 
   const PlotterPreview = () => {
