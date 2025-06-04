@@ -23,25 +23,22 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024, // 100MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Allow only vector file types for precise measurements
+    // Allow common file types for printing
     const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
       'application/pdf',
-      'application/postscript', // .ai files
+      'application/postscript',
       'image/svg+xml',
-      'application/illustrator', // Adobe Illustrator
-      'application/x-eps', // EPS files
-      'application/eps',
-      'image/eps'
+      'application/zip',
+      'application/x-rar-compressed'
     ];
     
-    // Also check file extensions for better validation
-    const allowedExtensions = ['.pdf', '.ai', '.svg', '.eps', '.ps'];
-    const fileExtension = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
-    
-    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Sadece vektörel dosya formatları kabul edilir: PDF, AI, SVG, EPS'));
+      cb(new Error('Invalid file type. Only images, PDFs, AI, SVG, ZIP, and RAR files are allowed.'));
     }
   }
 });
