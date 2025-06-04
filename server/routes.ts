@@ -843,6 +843,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/payment?error=payment_failed');
   });
 
+  // Plotter designs endpoint for automation panel
+  app.get('/api/automation/plotter/designs', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.id || req.session?.user?.id;
+      const user = await storage.getUser(userId);
+
+      if (!user || user.role !== 'printer') {
+        return res.status(403).json({ message: "Printer access required" });
+      }
+
+      // Get all design files for this user
+      const files = await storage.getFilesByUser(userId);
+      const designs = files.filter(f => f.fileType === 'design').map(file => ({
+        id: file.id,
+        name: file.originalName,
+        filename: file.filename,
+        filePath: `/uploads/${file.filename}`,
+        thumbnailPath: file.thumbnailPath || '',
+        size: file.size,
+        type: file.mimeType,
+        mimeType: file.mimeType,
+        dimensions: file.dimensions || 'Unknown',
+        realDimensionsMM: file.realDimensionsMM || 'Boyut bilinmiyor',
+        fileSize: `${Math.round((file.size || 0) / 1024)}KB`,
+        fileType: 'design',
+        contentPreserved: true,
+        processingStatus: file.status === 'ready' ? 'success' : 'processing',
+        processingNotes: file.processingNotes || '',
+        colorProfile: file.colorProfile,
+        resolution: file.resolution,
+        userId,
+        uploadedAt: file.createdAt
+      }));
+
+      console.log(`📁 Found ${designs.length} design files for user ${userId}`);
+      res.json(designs);
+    } catch (error) {
+      console.error("Error fetching plotter designs:", error);
+      res.status(500).json({ message: "Failed to fetch designs" });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
