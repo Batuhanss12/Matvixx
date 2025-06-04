@@ -87,12 +87,21 @@ export default function AutomationPanel() {
   // Get designs from API with better error handling
   const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading, error: designsError } = useQuery({
     queryKey: ['/api/automation/plotter/designs'],
+    queryFn: async () => {
+      try {
+        const result = await apiRequest('GET', '/api/automation/plotter/designs');
+        console.log('🎨 API Response:', result);
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error('🔥 Designs fetch error:', error);
+        return [];
+      }
+    },
     enabled: true,
-    refetchInterval: 2000,
+    refetchInterval: 3000,
     retry: 3,
-    retryDelay: 1000,
     onSuccess: (data) => {
-      console.log('🎨 Designs loaded:', data?.length || 0, 'designs');
+      console.log('✅ Designs loaded successfully:', data?.length || 0, 'designs');
       if (data && data.length > 0) {
         console.log('First design sample:', data[0]);
       }
@@ -146,8 +155,15 @@ export default function AutomationPanel() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('📤 Upload success data:', data);
+
       // Refresh designs list to get new uploads
       queryClient.invalidateQueries({ queryKey: ['/api/automation/plotter/designs'] });
+
+      // Multiple refresh attempts to ensure data is loaded
+      setTimeout(() => refetchDesigns(), 500);
+      setTimeout(() => refetchDesigns(), 1500);
+      setTimeout(() => refetchDesigns(), 3000);
 
       // Auto-select uploaded designs for arrangement if data.designs exists
       if (data.designs && data.designs.length > 0) {
@@ -908,22 +924,16 @@ export default function AutomationPanel() {
                   {Array.isArray(designs) && designs.length > 0 ? (
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Yüklenen Tasarımlar ({designs.length})</h4>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedDesigns(designs.map((d: any) => d.id))}
-                          >
-                            Tümünü Seç
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedDesigns([])}
-                          >
-                            Seçimi Temizle
-                          </Button>
+                        <h3 className="text-lg font-semibold">Yüklenen Tasarımlar</h3>
+                        <div className="flex items-center gap-2">
+                          {designsError && (
+                            <Badge variant="destructive" className="text-xs">
+                              Hata: Tasarımlar yüklenemedi
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-blue-600">
+                            {designs.length} dosya
+                          </Badge>
                         </div>
                       </div>
 
@@ -997,17 +1007,30 @@ export default function AutomationPanel() {
                             </div>
                           </div>
                         )) : (
-                          <div className="col-span-full text-center py-8 text-gray-500">
+                          <div className="text-center py-8 text-gray-500">
                             {designsLoading ? (
-                              <div>
-                                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                <p>Tasarımlar yükleniyor...</p>
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                <span>Tasarımlar yükleniyor...</span>
+                              </div>
+                            ) : designsError ? (
+                              <div className="text-red-500">
+                                <div className="text-lg mb-2">❌</div>
+                                <div>Tasarımlar yüklenirken hata oluştu</div>
+                                <button 
+                                  onClick={() => refetchDesigns()}
+                                  className="mt-2 text-sm text-blue-600 hover:underline"
+                                >
+                                  Tekrar dene
+                                </button>
                               </div>
                             ) : (
                               <div>
-                                <div className="text-4xl mb-2">📁</div>
-                                <p>Henüz tasarım yüklenmemiş</p>
-                                <p className="text-xs mt-1">PDF, SVG, AI veya EPS dosyalarınızı yükleyin</p>
+                                <div className="text-lg mb-2">📁</div>
+                                <div>Henüz tasarım yüklenmemiş</div>
+                                <div className="text-sm text-gray-400 mt-1">
+                                  Yukarıdaki "Dosya Seç" butonunu kullanarak tasarım yükleyin
+                                </div>
                               </div>
                             )}
                           </div>
