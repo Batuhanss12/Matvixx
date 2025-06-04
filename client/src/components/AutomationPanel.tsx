@@ -85,23 +85,19 @@ export default function AutomationPanel() {
   });
 
   // Get designs from API with better error handling
-  const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading, error: designsError } = useQuery({
+  const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading } = useQuery({
     queryKey: ['/api/automation/plotter/designs'],
     queryFn: async () => {
-      try {
-        const result = await apiRequest('GET', '/api/automation/plotter/designs');
-        console.log('🎨 API Response:', result);
-        return Array.isArray(result) ? result : [];
-      } catch (error) {
-        console.error('🔥 Designs fetch error:', error);
-        return [];
-      }
+      const response = await fetch('/api/automation/plotter/designs', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch designs');
+      return response.json();
     },
     enabled: true,
-    refetchInterval: 3000,
-    retry: 3,
+    refetchInterval: 5000,
     onSuccess: (data) => {
-      console.log('✅ Designs loaded successfully:', data?.length || 0, 'designs');
+      console.log('🎨 Designs loaded:', data?.length || 0, 'designs');
       if (data && data.length > 0) {
         console.log('First design sample:', data[0]);
       }

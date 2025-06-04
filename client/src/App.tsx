@@ -39,16 +39,13 @@ function Router() {
             const userRole = (user as any)?.role || 'customer';
             
             if (userRole === 'admin') {
-              window.location.href = '/admin-dashboard';
-              return null;
+              return <AdminDashboard />;
             }
             if (userRole === 'printer') {
-              window.location.href = '/printer-dashboard';
-              return null;
+              return <PrinterDashboard />;
             }
             // Default to customer dashboard
-            window.location.href = '/customer-dashboard';
-            return null;
+            return <CustomerDashboard />;
           }} />
           
           <Route path="/dashboard" component={() => {
