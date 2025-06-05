@@ -87,8 +87,15 @@ export default function AutomationPanel() {
   // Get designs from API with better error handling
   const { data: designs = [], refetch: refetchDesigns, isLoading: designsLoading } = useQuery({
     queryKey: ['/api/automation/plotter/designs'],
+    queryFn: async () => {
+      const response = await fetch('/api/automation/plotter/designs', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch designs');
+      return response.json();
+    },
     enabled: true,
-    refetchInterval: 2000,
+    refetchInterval: 5000,
     onSuccess: (data) => {
       console.log('🎨 Designs loaded:', data?.length || 0, 'designs');
       if (data && data.length > 0) {
@@ -97,6 +104,11 @@ export default function AutomationPanel() {
     },
     onError: (error) => {
       console.error('❌ Error loading designs:', error);
+      toast({
+        title: "Tasarım Yükleme Hatası",
+        description: "Tasarımlar yüklenirken bir hata oluştu. Sayfa yenileniyor...",
+        variant: "destructive",
+      });
     }
   });
 
@@ -139,8 +151,15 @@ export default function AutomationPanel() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('📤 Upload success data:', data);
+
       // Refresh designs list to get new uploads
       queryClient.invalidateQueries({ queryKey: ['/api/automation/plotter/designs'] });
+
+      // Multiple refresh attempts to ensure data is loaded
+      setTimeout(() => refetchDesigns(), 500);
+      setTimeout(() => refetchDesigns(), 1500);
+      setTimeout(() => refetchDesigns(), 3000);
 
       // Auto-select uploaded designs for arrangement if data.designs exists
       if (data.designs && data.designs.length > 0) {
@@ -188,10 +207,16 @@ export default function AutomationPanel() {
         throw new Error('En az bir tasarım seçilmelidir');
       }
 
-      return apiRequest('POST', '/api/automation/plotter/auto-arrange', {
-        designIds,
-        plotterSettings
-      });
+      try {
+        const result = await apiRequest('POST', '/api/automation/plotter/auto-arrange', {
+          designIds,
+          plotterSettings
+        });
+        return result;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw new Error('Dizilim API isteği başarısız oldu');
+      }
     },
     onSuccess: (data) => {
       console.log('✅ Auto-arrange successful:', data);
@@ -209,6 +234,13 @@ export default function AutomationPanel() {
           generatePdfMutation.mutate({ 
             plotterSettings, 
             arrangements: data.arrangements
+          }).catch((pdfError) => {
+            console.error('PDF generation failed:', pdfError);
+            toast({
+              title: "PDF Hatası",
+              description: "PDF oluşturulurken bir hata oluştu",
+              variant: "destructive",
+            });
           });
         }, 1000);
       }
@@ -290,45 +322,50 @@ export default function AutomationPanel() {
     setLayoutName(savedLayout.name);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-    // Filter only vector files
-    const vectorFiles = Array.from(files).filter(file => {
-      const allowedTypes = [
-        'application/pdf',
-        'image/svg+xml',
-        'application/postscript', // AI files
-        'application/eps', // EPS files
-        'image/eps'
-      ];
-      return allowedTypes.includes(file.type) || 
-             file.name.toLowerCase().endsWith('.ai') ||
-             file.name.toLowerCase().endsWith('.eps') ||
-             file.name.toLowerCase().endsWith('.svg') ||
-             file.name.toLowerCase().endsWith('.pdf');
-    });
-
-    if (vectorFiles.length === 0) {
-      toast({
-        title: "Hata",
-        description: "Sadece vektörel dosyalar (PDF, SVG, AI, EPS) kabul edilmektedir.",
-        variant: "destructive",
+      // Filter only vector files
+      const vectorFiles = Array.from(files).filter(file => {
+        const allowedTypes = [
+          'application/pdf',
+          'image/svg+xml',
+          'application/postscript', // AI files
+          'application/eps', // EPS files
+          'image/eps'
+        ];
+        return allowedTypes.includes(file.type) || 
+               file.name.toLowerCase().endsWith('.ai') ||
+               file.name.toLowerCase().endsWith('.eps') ||
+               file.name.toLowerCase().endsWith('.svg') ||
+               file.name.toLowerCase().endsWith('.pdf');
       });
+
+      if (vectorFiles.length === 0) {
+        toast({
+          title: "Hata",
+          description: "Sadece vektörel dosyalar (PDF, SVG, AI, EPS) kabul edilmektedir.",
+          variant: "destructive",
+        });
+        event.target.value = '';
+        return;
+      }
+
+      const formData = new FormData();
+      vectorFiles.forEach((file) => {
+        formData.append('designs', file);
+      });
+
+      await uploadDesignsMutation.mutateAsync(formData);
+
+      // Reset file input
       event.target.value = '';
-      return;
+    } catch (error) {
+      console.error('File upload handler error:', error);
+      event.target.value = '';
     }
-
-    const formData = new FormData();
-    vectorFiles.forEach((file) => {
-      formData.append('designs', file);
-    });
-
-    uploadDesignsMutation.mutate(formData);
-
-    // Reset file input
-    event.target.value = '';
   };
 
   const toggleDesignSelection = (designId: string) => {
@@ -339,31 +376,36 @@ export default function AutomationPanel() {
     );
   };
 
-  const handleAutoArrange = () => {
-    console.log('🎯 Handle auto arrange triggered');
-    console.log('Selected designs:', selectedDesigns);
-    console.log('All designs:', designs);
+  const handleAutoArrange = async () => {
+    try {
+      console.log('🎯 Handle auto arrange triggered');
+      console.log('Selected designs:', selectedDesigns);
+      console.log('All designs:', designs);
 
-    // If no designs are selected, use all available designs
-    const designsToArrange = selectedDesigns.length > 0 
-      ? selectedDesigns 
-      : (designs || []).filter(d => d && d.id && d.fileType === 'design').map(d => d.id);
+      // If no designs are selected, use all available designs
+      const designsToArrange = selectedDesigns.length > 0 
+        ? selectedDesigns 
+        : (designs || []).filter(d => d && d.id && d.fileType === 'design').map(d => d.id);
 
-    console.log('Designs to arrange:', designsToArrange);
+      console.log('Designs to arrange:', designsToArrange);
 
-    if (designsToArrange.length === 0) {
-      toast({
-        title: "Uyarı", 
-        description: "Dizilim için tasarım bulunamadı. Önce tasarım yükleyin.",
-        variant: "destructive",
+      if (designsToArrange.length === 0) {
+        toast({
+          title: "Uyarı", 
+          description: "Dizilim için tasarım bulunamadı. Önce tasarım yükleyin.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await autoArrangeMutation.mutateAsync({
+        designIds: designsToArrange,
+        plotterSettings
       });
-      return;
+    } catch (error) {
+      console.error('Handle auto arrange error:', error);
+      // Error is already handled in mutation onError
     }
-
-    autoArrangeMutation.mutate({
-      designIds: designsToArrange,
-      plotterSettings
-    });
   };
 
   const PlotterPreview = () => {
@@ -878,22 +920,16 @@ export default function AutomationPanel() {
                   {Array.isArray(designs) && designs.length > 0 ? (
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Yüklenen Tasarımlar ({designs.length})</h4>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedDesigns(designs.map((d: any) => d.id))}
-                          >
-                            Tümünü Seç
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedDesigns([])}
-                          >
-                            Seçimi Temizle
-                          </Button>
+                        <h3 className="text-lg font-semibold">Yüklenen Tasarımlar</h3>
+                        <div className="flex items-center gap-2">
+                          {designsError && (
+                            <Badge variant="destructive" className="text-xs">
+                              Hata: Tasarımlar yüklenemedi
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-blue-600">
+                            {designs.length} dosya
+                          </Badge>
                         </div>
                       </div>
 
@@ -967,17 +1003,30 @@ export default function AutomationPanel() {
                             </div>
                           </div>
                         )) : (
-                          <div className="col-span-full text-center py-8 text-gray-500">
+                          <div className="text-center py-8 text-gray-500">
                             {designsLoading ? (
-                              <div>
-                                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                <p>Tasarımlar yükleniyor...</p>
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                <span>Tasarımlar yükleniyor...</span>
+                              </div>
+                            ) : designsError ? (
+                              <div className="text-red-500">
+                                <div className="text-lg mb-2">❌</div>
+                                <div>Tasarımlar yüklenirken hata oluştu</div>
+                                <button 
+                                  onClick={() => refetchDesigns()}
+                                  className="mt-2 text-sm text-blue-600 hover:underline"
+                                >
+                                  Tekrar dene
+                                </button>
                               </div>
                             ) : (
                               <div>
-                                <div className="text-4xl mb-2">📁</div>
-                                <p>Henüz tasarım yüklenmemiş</p>
-                                <p className="text-xs mt-1">PDF, SVG, AI veya EPS dosyalarınızı yükleyin</p>
+                                <div className="text-lg mb-2">📁</div>
+                                <div>Henüz tasarım yüklenmemiş</div>
+                                <div className="text-sm text-gray-400 mt-1">
+                                  Yukarıdaki "Dosya Seç" butonunu kullanarak tasarım yükleyin
+                                </div>
                               </div>
                             )}
                           </div>
